@@ -1,6 +1,6 @@
 # Jetstream Disable Personal Team
 
-This package allows you to disable the personal team feature in Jetstream.
+This package allows you to disable the personal teams in Laravel Jetstream.
 
 ## Requirements
 
@@ -16,19 +16,9 @@ composer require itbm/laravel-jetstream-disable-personal-team
 
 ## Usage
 
-After installing the package, you can disable the personal team feature by replacing the `HasTeams` trait in your `User` model:
+### All
 
-```php
-// use Laravel\Jetstream\HasTeams;
-use ITBM\DPT\Traits\HasTeams;
-
-class User extends Authenticatable
-{
-    use HasTeams;
-}
-```
-
-Then you will need to update your `CreateNewUser.php` file to comment out the personal team creation logic:
+Update your `CreateNewUser.php` file to comment out the personal team creation logic:
 
 ```php
 return DB::transaction(function () use ($input) {
@@ -42,7 +32,22 @@ return DB::transaction(function () use ($input) {
 });
 ```
 
-Next you will need to update your `AppLayout.vue` file to hide the team dropdown from the navigation before the user has joined a team. Find and replace these 2 lines:
+Then, edit `web.php` and `api.php` to include the `require-team` middleware included with this package. This will redirect the user to the team creation page if they have not joined a team yet:
+
+```php
+Route::middleware([
+    'auth:sanctum',
+    config('jetstream.auth_session'),
+    'verified',
+    'require-team',
+])->group(function () {
+    // ...
+});
+```
+
+### Inertia Only
+
+You will need to update your `AppLayout.vue` file. Find and replace these 2 lines:
 
 ```javascript
 <Dropdown v-if="$page.props.jetstream.hasTeamFeatures" align="right" width="60">
@@ -52,22 +57,19 @@ Next you will need to update your `AppLayout.vue` file to hide the team dropdown
 with:
 
 ```javascript
-<Dropdown v-if="$page.props.jetstream.hasTeamFeatures && $page.props.auth.user.all_teams.length > 0" align="right" width="60">
+<Dropdown v-if="$page.props.jetstream.hasTeamFeatures && $page.props.auth.user.current_team" align="right" width="60">
 
-<template v-if="$page.props.jetstream.hasTeamFeatures && $page.props.auth.user.all_teams.length > 0">
+<template v-if="$page.props.jetstream.hasTeamFeatures && $page.props.auth.user.current_team">
 ```
 
-Finally, edit `web.php` and `api.php` to include the `require-team` middleware. This will redirect the user to the team creation page if they have not joined a team yet:
+### Livewire Only
 
-```php
-Route::middleware([
-    'auth:sanctum',
-    config('jetstream.auth_session'),
-    'verified',
-    'require-team',
-])->group(function () {
-    Route::get('/dashboard', function () {
-        return Inertia::render('Dashboard');
-    })->name('dashboard');
-});
+You will need to update your `navigation-menu.blade.php` file. Find and replace both instances of this line:
+
+```blade
+@if (Laravel\Jetstream\Jetstream::hasTeamFeatures())
+```
+with:
+```blade  
+@if (Laravel\Jetstream\Jetstream::hasTeamFeatures() && Auth::user()->currentTeam)
 ```

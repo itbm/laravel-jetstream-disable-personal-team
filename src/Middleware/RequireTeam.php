@@ -12,7 +12,7 @@ class RequireTeam
      */
     public function handle(Request $request, Closure $next)
     {
-        if (!auth()->user()->isMemberOfATeam()) {
+        if (auth()->user()->allTeams()->count() === 0) {
             return redirect()->route('teams.create');
         }
         

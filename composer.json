@@ -1,6 +1,6 @@
 {
     "name": "itbm/laravel-jetstream-disable-personal-team",
-    "description": "Traits to disable personal teams in Laravel Jetstream",
+    "description": "Disable personal teams in Laravel Jetstream",
     "version": "1.0.0",
     "keywords": [
         "itbm",
